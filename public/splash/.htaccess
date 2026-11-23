@@ -1,0 +1,5 @@
+# iOS only uses a launch image whose pixel size matches the screen exactly.
+# Stop the CDN's mobile image optimisation from resizing or re-encoding these files.
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=604800, no-transform"
+</IfModule>

@@ -1,0 +1,23 @@
+# DYNOMARK climbing app (prototype at /send/): keep it out of search, keep updates fresh.
+DirectoryIndex index.html
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType font/woff2 .woff2
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/manifest+json
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow"
+  # Page, manifest and service worker must be rechecked on every launch so new versions arrive.
+  <FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # Built files have a content hash in their name, so they never change.
+  <FilesMatch "-[A-Za-z0-9_-]{8}\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>

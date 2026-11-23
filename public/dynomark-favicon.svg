@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#111214"/><g transform="translate(23.599999999999998 17) scale(0.66)">
+    <path transform="skewX(-14)" d="M0,0H58L82,24V76L58,100H0ZM26,26V74H50L56,68V32L50,26Z" fill="#C6F432" fill-rule="evenodd"/>
+    <line x1="-40" y1="96" x2="88" y2="18" stroke="#111214" stroke-width="7"/>
+    <circle cx="96" cy="10" r="9" fill="#FF8A3D"/>
+  </g></svg>

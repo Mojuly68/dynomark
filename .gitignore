@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules
+dist
+*.log
+
+# Local-only: test builds, store bundles and generated store graphics (regenerate with store/make-screenshots.mjs)
+release/
+store/screenshots/
+store/*.png
+.claude/
+
+# Secrets never belong in this repo. The Android upload key and its passwords live in
+# %USERPROFILE%\.dynomark-signing; App Store Connect keys live in Codemagic.
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+keystore.properties
+.env
+.env.*

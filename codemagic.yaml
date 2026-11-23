@@ -1,0 +1,43 @@
+# Codemagic cloud build: DYNOMARK for iPhone, uploaded to TestFlight.
+# Runs on a Codemagic Mac, so no Mac is needed here. Start it by hand from the Codemagic dashboard.
+# Before the first run, add the App Store Connect API key in Codemagic under the name below (see TESTFLIGHT.md).
+workflows:
+  ios-testflight:
+    name: DYNOMARK iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      # Must match the name of the App Store Connect API key in Codemagic (Team settings → Integrations).
+      app_store_connect: DYNOMARK App Store Connect key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.studiovektor.dynomark
+      vars:
+        # The app's Apple ID: App Store Connect → DYNOMARK → App Information → Apple ID.
+        APP_STORE_APPLE_ID: 6838461384
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install packages
+        script: npm ci
+      - name: Build the web app (store build, Pro testing switch off)
+        script: VITE_PRO_PREVIEW=false npm run build
+      - name: Copy it into the iOS app
+        script: npx cap sync ios
+      - name: Use the signing files Codemagic fetched
+        script: xcode-project use-profiles
+      - name: Next build number
+        script: |
+          cd ios/App
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          agvtool new-version -all $((LATEST + 1))
+      - name: Build the iPhone app
+        script: xcode-project build-ipa --project "ios/App/App.xcodeproj" --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

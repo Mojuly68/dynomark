@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-line: var(--c-line);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-route: var(--c-route);
+  --color-boulder: var(--c-boulder);
+  --color-danger: var(--c-danger);
+  --color-blue: var(--c-blue);
+  --color-accent: #c6f432;
+  --color-accent-ink: #111214;
+  --color-orange: #ff8a3d;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Roboto Variable", Roboto, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Roboto Variable", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Roboto Mono Variable", "Roboto Mono", monospace;
+}
+
+:root {
+  /* Safe areas: the browser's env() values, or the ones the Android app (Capacitor) passes in, which its WebView doesn't report through env(). */
+  --sa-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sa-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  color-scheme: dark;
+  --c-bg: #111214;
+  --c-surface: #1a1b1e;
+  --c-surface-2: #25272b;
+  --c-line: #2e3035;
+  --c-ink: #f2f1ec;
+  --c-muted: #9a9ca3;
+  --c-route: #c6f432;
+  --c-boulder: #ff8a3d;
+  --c-danger: #ff8a80;
+  --c-blue: #7fb2ff;
+  --c-focus: #c6f432;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --c-bg: #f3f2ed;
+  --c-surface: #ffffff;
+  --c-surface-2: #e9e8e2;
+  --c-line: #d6d5ce;
+  --c-ink: #141517;
+  --c-muted: #5b5e65;
+  --c-route: #4a7300;
+  --c-boulder: #b5500c;
+  --c-danger: #c0352b;
+  --c-blue: #2f6fd6;
+  --c-focus: #4a7300;
+}
+
+html,
+body {
+  background: var(--c-bg);
+  color: var(--c-ink);
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button:not(:disabled),
+[role="button"],
+label[for] {
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.pb-safe {
+  padding-bottom: max(var(--sa-bottom), 0px);
+}
+.sr-only-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes flash-row {
+  from { background-color: color-mix(in srgb, #c6f432 22%, transparent); }
+  to { background-color: transparent; }
+}
+@keyframes burst {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; }
+}
+@keyframes slam {
+  0% { transform: scale(2.2); opacity: 0; }
+  55% { transform: scale(0.95); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.anim-rise { animation: rise 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.anim-fade { animation: fade 0.25s ease both; }
+.anim-flash { animation: flash-row 1.2s ease-out; }
+.anim-burst { animation: burst 1.4s cubic-bezier(0.15, 0.7, 0.3, 1) forwards; }
+.anim-slam { animation: slam 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.anim-grow { transform-origin: left; animation: grow-x 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .anim-fade, .anim-flash, .anim-slam, .anim-grow { animation: none; }
+  .anim-burst { animation: none; opacity: 0; }
+}
+
+/* Recharts focus outline on click looks broken; keep keyboard focus elsewhere. */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
