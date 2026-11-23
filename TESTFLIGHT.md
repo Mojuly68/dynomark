@@ -6,7 +6,7 @@ Where things stand: the iPhone app project is ready in `ios/` (Capacitor 8, Swif
 - [x] Apple Developer Program: Team ID `AV8QYWM9J7`
 - [x] App ID registered: `AV8QYWM9J7.com.studiovektor.dynomark`
 - [x] App created in App Store Connect: Apple ID `6838461384` (already in `codemagic.yaml`)
-- [ ] App Store Connect API key added to Codemagic (Issuer ID, Key ID, `.p8` file), named "DYNOMARK App Store Connect key"
+- [ ] App Store Connect API key added to Codemagic (Issuer ID, Key ID, `.p8` file), named "DYNOMARK"
 - [ ] Private GitHub repo with `send-app/` pushed, connected to Codemagic
 - [ ] First build → TestFlight
 
@@ -29,7 +29,7 @@ Where things stand: the iPhone app project is ready in `ios/` (Capacitor 8, Swif
 ## 4. Code on GitHub + Codemagic (you sign up, I can do the rest)
 - Codemagic builds from a Git repository. Create a **private** GitHub repo (e.g. `dynomark`) and push `send-app/` to it. Ask me and I'll make the first commit and push.
 - Sign up at codemagic.io with GitHub (the free plan includes Mac build minutes each month) and add the repo.
-- Codemagic → Team settings → Integrations → App Store Connect: add the API key (Issuer ID, Key ID, `.p8`). Name it **DYNOMARK App Store Connect key**, or change the name in `codemagic.yaml`.
+- Codemagic → Team settings → Integrations → App Store Connect: add the API key (Issuer ID, Key ID, `.p8`). Name it **DYNOMARK** (the name `codemagic.yaml` expects).
 - In `codemagic.yaml`, set `APP_STORE_APPLE_ID` to the number from step 2.
 
 ## 5. Build
