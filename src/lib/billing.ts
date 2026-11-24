@@ -70,7 +70,10 @@ export async function restoreStore(): Promise<StoreStatus> {
   return statusOf((await m.Purchases.restorePurchases()).customerInfo);
 }
 
-export interface StorePrice { price: string; perMonth: string | null }
+/** `freeTrialDays` is set only when the store has a free trial for this product AND this customer can still get it. */
+export interface StorePrice { price: string; perMonth: string | null; freeTrialDays: number | null }
+const UNIT_DAYS: Record<string, number> = { DAY: 1, WEEK: 7, MONTH: 30, YEAR: 365 };
+
 /** Local store prices (e.g. "€39.99"), so the paywall shows exactly what the store will charge. */
 export async function storePrices(): Promise<Partial<Record<ProPlan, StorePrice>>> {
   const m = await rc();
@@ -78,8 +81,21 @@ export async function storePrices(): Promise<Partial<Record<ProPlan, StorePrice>
     m.Purchases.getProducts({ productIdentifiers: [PRODUCT_IDS.year, PRODUCT_IDS.month], type: m.PRODUCT_CATEGORY.SUBSCRIPTION }),
     m.Purchases.getProducts({ productIdentifiers: [PRODUCT_IDS.life], type: m.PRODUCT_CATEGORY.NON_SUBSCRIPTION }),
   ]);
+  // Never promise a trial the store won't give: ask whether this Apple ID is still eligible.
+  const withTrial = subs.products.filter((p) => p.introPrice?.price === 0).map((p) => p.identifier);
+  const eligible = withTrial.length
+    ? await m.Purchases.checkTrialOrIntroductoryPriceEligibility({ productIdentifiers: withTrial }).catch(() => ({} as Record<string, { status: number }>))
+    : {};
   const out: Partial<Record<ProPlan, StorePrice>> = {};
-  for (const p of [...subs.products, ...once.products]) out[planOf(p.identifier)] = { price: p.priceString, perMonth: p.pricePerMonthString ?? null };
+  for (const p of [...subs.products, ...once.products]) {
+    const intro = p.introPrice;
+    const ok = intro?.price === 0 && eligible[p.identifier]?.status !== m.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE;
+    out[planOf(p.identifier)] = {
+      price: p.priceString,
+      perMonth: p.pricePerMonthString ?? null,
+      freeTrialDays: ok && intro ? intro.periodNumberOfUnits * (UNIT_DAYS[intro.periodUnit] ?? 1) : null,
+    };
+  }
   return out;
 }
 

@@ -24,21 +24,29 @@ export const PURCHASES_LIVE = !PRO_PREVIEW && BILLING_READY;
  */
 export const ALL_FREE = !PRO_PREVIEW && !PURCHASES_LIVE;
 
+/** `trial` = free-trial days the store will really give this customer (null = no trial: never promise one). */
 export interface PlanInfo {
-  id: ProPlan; name: string; price: string; per: string; note: string; badge?: string;
-  cta: (price: string) => string; fine: (price: string) => string;
+  id: ProPlan; name: string; price: string; per: string; badge?: string;
+  note: (trial: number | null) => string;
+  cta: (price: string, trial: number | null) => string;
+  fine: (price: string, trial: number | null) => string;
 }
+const RENEWS = 'Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.';
 /**
  * US prices as set in App Store Connect. In store builds the paywall replaces them with the store's own
- * local price strings (lib/billing.ts storePrices), so the button and fine print always match the charge.
+ * local price strings and trial eligibility (lib/billing.ts storePrices), so the button and fine print match the charge.
  */
 export const PLANS: PlanInfo[] = [
-  { id: 'year', name: 'Yearly', price: '$34.99', per: '$2.92 / month', note: '7-day free trial', badge: 'Save 42%', cta: () => 'Start 7-day free trial',
-    fine: (p) => `7 days free, then ${p} per year. Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.` },
-  { id: 'month', name: 'Monthly', price: '$4.99', per: 'per month', note: 'Cancel anytime', cta: (p) => `Subscribe for ${p} / month`,
-    fine: (p) => `${p} per month. Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.` },
-  { id: 'life', name: 'Lifetime', price: '$79.00', per: 'one time', note: 'Pay once, keep Pro', cta: (p) => `Unlock Pro for ${p}`, fine: () => 'One-time purchase. No subscription and no renewals.' },
+  { id: 'year', name: 'Yearly', price: '$34.99', per: '$2.92 / month', badge: 'Save 42%',
+    note: (t) => (t ? `${t}-day free trial` : 'Best value'),
+    cta: (p, t) => (t ? `Start ${t}-day free trial` : `Subscribe for ${p} / year`),
+    fine: (p, t) => (t ? `${t} days free, then ${p} per year. ${RENEWS}` : `${p} per year. ${RENEWS}`) },
+  { id: 'month', name: 'Monthly', price: '$4.99', per: 'per month', note: () => 'Cancel anytime', cta: (p) => `Subscribe for ${p} / month`,
+    fine: (p) => `${p} per month. ${RENEWS}` },
+  { id: 'life', name: 'Lifetime', price: '$79.00', per: 'one time', note: () => 'Pay once, keep Pro', cta: (p) => `Unlock Pro for ${p}`, fine: () => 'One-time purchase. No subscription and no renewals.' },
 ];
+/** Trial shown in testing-preview builds (matches the store set-up); store builds use what the store reports. */
+export const PREVIEW_TRIAL_DAYS = 7;
 
 /** What Pro unlocks today. Only list features that exist (store review checks this). */
 export const PRO_PERKS = [
@@ -124,7 +132,7 @@ export function UpsellProvider({ children }: { children: ReactNode }) {
       {children}
       <Sheet open={!!u} onClose={close} title={u?.title ?? 'DYNOMARK Pro'} footer={
         <div className="flex flex-col gap-1.5">
-          <Button variant="primary" className="w-full" onClick={() => { close(); navigate('/pro'); }}>Try Pro free for 7 days</Button>
+          <Button variant="primary" className="w-full" onClick={() => { close(); navigate('/pro'); }}>See Pro plans</Button>
           <Button variant="ghost" className="w-full" onClick={close}>Not now</Button>
         </div>
       }>
@@ -161,7 +169,7 @@ export function ProGate({ title, body, children }: { title: string; body: string
       <h2 className="m-0 font-display text-2xl font-black leading-tight">{title}</h2>
       <p className="m-0 text-sm leading-relaxed text-muted">{body}</p>
       {children}
-      <Button variant="primary" onClick={() => navigate('/pro')}>Try Pro free for 7 days</Button>
+      <Button variant="primary" onClick={() => navigate('/pro')}>See Pro plans</Button>
     </div>
   );
 }

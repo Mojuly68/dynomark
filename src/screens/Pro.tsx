@@ -6,7 +6,7 @@ import { Logo } from '../components/Logo';
 import { Button, IconButton, cx } from '../components/ui';
 import { navigate } from '../lib/router';
 import { haptic } from '../lib/native';
-import { PLANS, PRO_PERKS, PRO_PREVIEW, PURCHASES_LIVE, grantPro, purchase, restore, usePro } from '../lib/pro';
+import { PLANS, PREVIEW_TRIAL_DAYS, PRO_PERKS, PRO_PREVIEW, PURCHASES_LIVE, grantPro, purchase, restore, usePro } from '../lib/pro';
 import { storePrices, type StorePrice } from '../lib/billing';
 import type { ProPlan } from '../types';
 
@@ -34,6 +34,8 @@ export function Pro() {
   const [prices, setPrices] = useState<Partial<Record<ProPlan, StorePrice>>>({});
   useEffect(() => { if (PURCHASES_LIVE) storePrices().then(setPrices).catch(() => undefined); }, []);
   const priceOf = (id: ProPlan) => prices[id]?.price ?? PLANS.find((p) => p.id === id)!.price;
+  // Free trial only when the store says this customer gets one (store builds); the designed 7 days in testing builds.
+  const trialOf = (id: ProPlan): number | null => (id !== 'year' ? null : PURCHASES_LIVE ? prices.year?.freeTrialDays ?? null : PREVIEW_TRIAL_DAYS);
   const cur = PLANS.find((p) => p.id === plan)!;
   const back = () => (history.length > 1 ? history.back() : navigate('/'));
 
@@ -101,7 +103,7 @@ export function Pro() {
                 <button key={o.id} type="button" role="radio" aria-checked={on} onClick={() => { setPlan(o.id); setStatus(''); }}
                   className={cx('relative flex min-h-16 items-center gap-3 rounded-2xl border-2 px-3.5 py-2.5 text-left', on ? 'border-accent bg-accent/10' : 'border-line bg-surface')}>
                   <span aria-hidden="true" className={cx('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', on ? 'border-accent' : 'border-muted')}>{on && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}</span>
-                  <span className="flex flex-1 flex-col"><b className="text-base">{o.name}</b><span className="text-xs text-muted">{o.note}</span></span>
+                  <span className="flex flex-1 flex-col"><b className="text-base">{o.name}</b><span className="text-xs text-muted">{o.note(trialOf(o.id))}</span></span>
                   <span className="flex flex-col items-end"><b className="text-base">{priceOf(o.id)}</b><span className="text-xs text-muted">{prices[o.id] ? (o.id === 'year' ? (prices.year?.perMonth ? prices.year.perMonth + ' / month' : 'per year') : o.per) : o.per}</span></span>
                   {o.badge && <span className="absolute -top-2.5 right-3.5 rounded-full bg-orange px-2 py-px text-[11px] font-extrabold text-accent-ink">{o.badge}</span>}
                 </button>
@@ -109,8 +111,8 @@ export function Pro() {
             })}
           </div>
 
-          <Button variant="primary" size="lg" onClick={buy} disabled={busy}>{busy ? 'One moment…' : cur.cta(priceOf(plan))}</Button>
-          <p className="m-0 -mt-1 text-center text-xs leading-relaxed text-muted">{cur.fine(priceOf(plan))}</p>
+          <Button variant="primary" size="lg" onClick={buy} disabled={busy}>{busy ? 'One moment…' : cur.cta(priceOf(plan), trialOf(plan))}</Button>
+          <p className="m-0 -mt-1 text-center text-xs leading-relaxed text-muted">{cur.fine(priceOf(plan), trialOf(plan))}</p>
           {PRO_PREVIEW && <p className="m-0 text-center text-xs text-boulder">Testing build: this turns on a free Pro preview. No payment is taken.</p>}
         </>
       )}
