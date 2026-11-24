@@ -18,6 +18,8 @@ workflows:
         APP_STORE_APPLE_ID: 6838461384
         # RevenueCat public SDK key for iOS (starts with "appl_"; public by design, safe to commit).
         # Empty = everything free with no paywall (the 1.0 behaviour). Set it to turn on Pro purchases (1.1).
+        # DYNOMARK's key (RevenueCat project "Dynomark", app "DYNOMARK (App Store)"): appl_ZhTaiSwVBGVrbVfnssnIpxkPgKl
+        # Switch it on only for 1.1, after 1.0 is approved and the Paid Apps Agreement is active.
         VITE_RC_APPLE_KEY: ""
       node: 22
       xcode: latest

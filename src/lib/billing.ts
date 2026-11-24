@@ -13,7 +13,7 @@ export const PRODUCT_IDS: Record<ProPlan, string> = {
   life: 'com.studiovektor.dynomark.pro.lifetime',
 };
 /** RevenueCat entitlement that all three products unlock. */
-export const ENTITLEMENT = 'pro';
+export const ENTITLEMENT = 'dynomark_pro';
 
 const platform = Capacitor.getPlatform();
 const KEY: string | undefined =
