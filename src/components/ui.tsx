@@ -151,20 +151,33 @@ export const inputCls = 'w-full min-h-12 rounded-[14px] border border-line bg-su
 /** Modal sheet: bottom sheet on phones, centred dialog on larger screens. */
 export function Sheet({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: string; children: ReactNode; footer?: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
+  // Callers pass a new onClose on every render; keep the latest in a ref so the open/close effect runs only
+  // when `open` changes. (It used to re-run on every parent render, e.g. 4x a second under the workout timer,
+  // refocusing the input each time: on iPhone that made the sheet and keyboard jitter.)
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
-    const t = setTimeout(() => ref.current?.querySelector<HTMLElement>('input,select,textarea,button:not([data-close])')?.focus(), 30);
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // On touch screens don't put focus in a text field (that pops the keyboard over a sheet that is still
+    // sliding in); focus the dialog itself so screen readers still land in it.
+    const touch = window.matchMedia('(pointer: coarse)').matches;
+    const t = setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      const first = el.querySelector<HTMLElement>(touch ? 'button:not([data-close])' : 'input,select,textarea,button:not([data-close])');
+      (touch ? el : first ?? el).focus({ preventScroll: true });
+    }, 30);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    return () => { clearTimeout(t); document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; prev?.focus?.(); };
-  }, [open, onClose]);
+    return () => { clearTimeout(t); document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; prev?.focus?.({ preventScroll: true }); };
+  }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <button aria-label="Close" data-close className="anim-fade absolute inset-0 bg-black/60" onClick={onClose} />
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className="anim-rise relative flex max-h-[90dvh] w-full flex-col rounded-t-[28px] border border-line bg-surface sm:max-w-lg sm:rounded-[28px]">
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className="anim-rise relative outline-none flex max-h-[90dvh] w-full flex-col rounded-t-[28px] border border-line bg-surface sm:max-w-lg sm:rounded-[28px]">
         <div className="flex items-center justify-between gap-3 px-5 pb-2 pt-4">
           <h2 className="m-0 font-display text-lg font-extrabold">{title}</h2>
           <IconButton label="Close" data-close onClick={onClose}><X size={18} /></IconButton>
