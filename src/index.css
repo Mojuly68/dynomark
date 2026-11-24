@@ -63,11 +63,23 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
 }
-button,
-input,
-select,
-textarea {
+button {
   font: inherit;
+}
+/*
+ * Form fields take the typeface but not the size of their label: a field inside a 13px label used to inherit 13px
+ * (this rule sat outside the layers, so it beat `text-base`), and iOS zooms the whole page into any field under
+ * 16px and stays zoomed. In the base layer so size classes like text-[26px] still win.
+ */
+@layer base {
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    font-size: 16px;
+  }
 }
 button:not(:disabled),
 [role="button"],
