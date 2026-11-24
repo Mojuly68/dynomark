@@ -113,10 +113,10 @@ export function Profile() {
         </p>
       </Card>
 
-      <Sheet open={confirm === 'fresh'} onClose={() => setConfirm(null)} title="Clear sample data?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="primary" className="flex-1" onClick={() => { replace({ ...createEmptyData(name.trim() || 'Climber'), settings: { ...createEmptyData().settings, theme: data.settings.theme } }); setConfirm(null); toast('Fresh start. Log your first climb.'); navigate('/log'); }}>Clear and start</Button></div>}>
+      <Sheet open={confirm === 'fresh'} onClose={() => setConfirm(null)} title="Clear sample data?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="primary" className="flex-1" onClick={() => { replace({ ...createEmptyData(name.trim() || 'Climber'), settings: { ...createEmptyData().settings, theme: data.settings.theme, pro: data.settings.pro } }); setConfirm(null); toast('Fresh start. Log your first climb.'); navigate('/log'); }}>Clear and start</Button></div>}>
         <p className="m-0 text-sm text-muted">All demo sessions, climbs, projects and workouts will be removed from this device. You can load the demo again later.</p>
       </Sheet>
-      <Sheet open={confirm === 'demo'} onClose={() => setConfirm(null)} title="Replace your data with the demo?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { replace(createDemoData()); setConfirm(null); toast('Demo account loaded'); navigate('/'); }}>Replace</Button></div>}>
+      <Sheet open={confirm === 'demo'} onClose={() => setConfirm(null)} title="Replace your data with the demo?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { { const demo = createDemoData(); replace({ ...demo, settings: { ...demo.settings, pro: data.settings.pro } }); } setConfirm(null); toast('Demo account loaded'); navigate('/'); }}>Replace</Button></div>}>
         <p className="m-0 text-sm text-muted">Your {data.climbs.length} logged climbs will be deleted from this device and replaced with sample data. Export a CSV first if you want to keep them.</p>
       </Sheet>
     </div>
@@ -160,12 +160,15 @@ function ProCard() {
       <H2 right={isPro ? <ProBadge /> : undefined}>DYNOMARK Pro</H2>
       {isPro && pro ? (
         <>
-          <p className="m-0 text-sm">{planName} · since {fmtDayYear(pro.since)}{pro.source === 'preview' ? ' · testing preview, no payment' : ''}</p>
+          <p className="m-0 text-sm">
+            {pro.source === 'founder'
+              ? <>Founding member since {fmtDayYear(pro.since)}. You were here for 1.0, so Pro stays free for you. Thank you.</>
+              : <>{planName} · since {fmtDayYear(pro.since)}{pro.source === 'preview' ? ' · testing preview, no payment' : ''}</>}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="ghost" onClick={() => navigate('/pro')}>What’s included</Button>
-            {pro.source === 'store'
-              ? <a href={manageSubscriptionUrl()} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold text-route">Manage subscription</a>
-              : <Button variant="ghost" onClick={() => { update(endPro); toast('Pro preview ended'); }}>End preview</Button>}
+            {pro.source === 'store' && pro.plan !== 'life' && <a href={manageSubscriptionUrl()} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold text-route">Manage subscription</a>}
+            {pro.source === 'preview' && <Button variant="ghost" onClick={() => { update(endPro); toast('Pro preview ended'); }}>End preview</Button>}
           </div>
         </>
       ) : (

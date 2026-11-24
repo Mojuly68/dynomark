@@ -1,6 +1,8 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Lock } from 'lucide-react';
 import { useStore } from '../store/Store';
+import { BILLING_READY, buy, onStoreChange, restoreStore, storeStatus, type StoreStatus } from './billing';
+import { founderSince } from './membership';
 import { Button, Sheet } from '../components/ui';
 import { navigate } from './router';
 import type { AppData, ProPlan, ProState } from '../types';
@@ -14,22 +16,28 @@ import type { AppData, ProPlan, ProState } from '../types';
  * with VITE_PRO_PREVIEW=false (codemagic.yaml does this), or Apple will reject a free unlock.
  */
 export const PRO_PREVIEW = import.meta.env.VITE_PRO_PREVIEW !== 'false';
-/** Set to true once purchase()/restore() really talk to the stores (RevenueCat + store products). */
-export const PURCHASES_LIVE = false;
+/** True in native store builds that have a RevenueCat key (lib/billing.ts): real purchases. */
+export const PURCHASES_LIVE = !PRO_PREVIEW && BILLING_READY;
 /**
  * Store build with no working purchases (v1.0): every feature is free and no Pro UI is shown,
  * because Apple rejects buy buttons that can't buy (Guideline 2.1).
  */
 export const ALL_FREE = !PRO_PREVIEW && !PURCHASES_LIVE;
 
-export interface PlanInfo { id: ProPlan; name: string; price: string; per: string; note: string; badge?: string; cta: string; fine: string }
-/** Example prices until the store products exist; the stores will supply local prices. */
+export interface PlanInfo {
+  id: ProPlan; name: string; price: string; per: string; note: string; badge?: string;
+  cta: (price: string) => string; fine: (price: string) => string;
+}
+/**
+ * US prices as set in App Store Connect. In store builds the paywall replaces them with the store's own
+ * local price strings (lib/billing.ts storePrices), so the button and fine print always match the charge.
+ */
 export const PLANS: PlanInfo[] = [
-  { id: 'year', name: 'Yearly', price: '$34.99', per: '$2.92 / month', note: '7-day free trial', badge: 'Save 42%', cta: 'Start 7-day free trial',
-    fine: '7 days free, then $34.99 per year. Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.' },
-  { id: 'month', name: 'Monthly', price: '$4.99', per: 'per month', note: 'Cancel anytime', cta: 'Subscribe for $4.99 / month',
-    fine: '$4.99 per month. Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.' },
-  { id: 'life', name: 'Lifetime', price: '$79', per: 'one time', note: 'Pay once, keep Pro', cta: 'Unlock Pro for $79', fine: 'One-time purchase. No subscription and no renewals.' },
+  { id: 'year', name: 'Yearly', price: '$34.99', per: '$2.92 / month', note: '7-day free trial', badge: 'Save 42%', cta: () => 'Start 7-day free trial',
+    fine: (p) => `7 days free, then ${p} per year. Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.` },
+  { id: 'month', name: 'Monthly', price: '$4.99', per: 'per month', note: 'Cancel anytime', cta: (p) => `Subscribe for ${p} / month`,
+    fine: (p) => `${p} per month. Renews automatically until you cancel. Cancel anytime in your App Store or Google Play settings at least 24 hours before renewal.` },
+  { id: 'life', name: 'Lifetime', price: '$79.00', per: 'one time', note: 'Pay once, keep Pro', cta: (p) => `Unlock Pro for ${p}`, fine: () => 'One-time purchase. No subscription and no renewals.' },
 ];
 
 /** What Pro unlocks today. Only list features that exist (store review checks this). */
@@ -41,28 +49,61 @@ export const PRO_PERKS = [
   'Every share-card style',
 ];
 
+/** Pro for this user: a store purchase, the testing preview, or founding membership (lib/membership.ts). */
 export function usePro() {
   const { data } = useStore();
-  const pro = data.settings.pro;
+  const founder = founderSince();
+  const pro: ProState | undefined = data.settings.pro ?? (founder ? { plan: 'life', since: founder, source: 'founder' } : undefined);
   return { isPro: ALL_FREE || !!pro, pro };
 }
 
-export const grantPro = (d: AppData, plan: ProPlan, source: ProState['source']): AppData =>
-  ({ ...d, settings: { ...d.settings, pro: { plan, since: new Date().toISOString(), source } } });
+/** Keeps settings.pro in step with the store: purchases, renewals, expiries, refunds, other devices. */
+export function useProSync() {
+  const { update } = useStore();
+  useEffect(() => {
+    if (!PURCHASES_LIVE) return;
+    const apply = (s: StoreStatus) => update((d) => {
+      const cur = d.settings.pro;
+      if (s.active) return cur?.source === 'store' && cur.plan === s.plan ? d : grantPro(d, s.plan ?? 'year', 'store', s.since);
+      return cur?.source === 'store' ? endPro(d) : d;
+    });
+    storeStatus().then(apply).catch(() => undefined);
+    onStoreChange(apply).catch(() => undefined);
+  }, [update]);
+}
+
+export const grantPro = (d: AppData, plan: ProPlan, source: ProState['source'], since = new Date().toISOString()): AppData =>
+  ({ ...d, settings: { ...d.settings, pro: { plan, since, source } } });
 export const endPro = (d: AppData): AppData => {
   const { pro: _pro, ...rest } = d.settings;
   void _pro;
   return { ...d, settings: rest };
 };
 
-/** Start a purchase. Today: unlocks the testing preview, or explains that purchases aren't open yet. */
-export async function purchase(_plan: ProPlan): Promise<'preview' | 'unavailable'> {
-  void _plan;
-  return PRO_PREVIEW ? 'preview' : 'unavailable';
+export type PurchaseResult = { kind: 'preview' } | { kind: 'purchased'; status: StoreStatus } | { kind: 'cancelled' } | { kind: 'unavailable' } | { kind: 'error'; message: string };
+
+/** Start a purchase: the store sheet in store builds, the free testing preview in testing builds. */
+export async function purchase(plan: ProPlan): Promise<PurchaseResult> {
+  if (PRO_PREVIEW) return { kind: 'preview' };
+  if (!PURCHASES_LIVE) return { kind: 'unavailable' };
+  try {
+    const r = await buy(plan);
+    if (r === 'cancelled') return { kind: 'cancelled' };
+    return r.active ? { kind: 'purchased', status: r } : { kind: 'error', message: 'The store did not confirm the purchase. Try Restore purchases.' };
+  } catch (e) {
+    return { kind: 'error', message: e instanceof Error ? e.message : 'The purchase could not be completed.' };
+  }
 }
-/** Restore earlier purchases from the user's Apple ID or Google account (needs the store connection). */
-export async function restore(): Promise<'none' | 'unavailable'> {
-  return PRO_PREVIEW ? 'none' : 'unavailable';
+/** Restore earlier purchases from the user's Apple ID or Google account. */
+export async function restore(): Promise<{ kind: 'restored'; status: StoreStatus } | { kind: 'none' } | { kind: 'unavailable' } | { kind: 'error'; message: string }> {
+  if (PRO_PREVIEW) return { kind: 'none' };
+  if (!PURCHASES_LIVE) return { kind: 'unavailable' };
+  try {
+    const s = await restoreStore();
+    return s.active ? { kind: 'restored', status: s } : { kind: 'none' };
+  } catch (e) {
+    return { kind: 'error', message: e instanceof Error ? e.message : 'Restore could not be completed.' };
+  }
 }
 
 export const manageSubscriptionUrl = () =>

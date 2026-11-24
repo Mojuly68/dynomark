@@ -5,6 +5,7 @@ import { DIRECTORY } from '../data/gyms';
 import { createDemoData } from '../data/demo';
 import { localStore, type DataStore } from './storage';
 import { normalize } from './actions';
+import { markInstall } from '../lib/membership';
 
 interface StoreValue {
   data: AppData;
@@ -18,7 +19,11 @@ interface StoreValue {
 const Ctx = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children, store = localStore }: { children: ReactNode; store?: DataStore }) {
-  const [data, setData] = useState<AppData>(() => normalize(store.load() ?? createDemoData()));
+  const [data, setData] = useState<AppData>(() => {
+    const saved = store.load();
+    markInstall(!!saved);
+    return normalize(saved ?? createDemoData());
+  });
   const first = useRef(true);
 
   useEffect(() => {

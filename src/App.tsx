@@ -4,7 +4,7 @@ import { ToastProvider } from './components/Toast';
 import { Layout } from './components/Layout';
 import { useRoute } from './lib/router';
 import { hideLaunch } from './lib/pwa';
-import { ALL_FREE, UpsellProvider } from './lib/pro';
+import { ALL_FREE, UpsellProvider, useProSync } from './lib/pro';
 
 // Each screen is its own chunk, so the first launch only downloads what it shows.
 const Dashboard = lazy(() => import('./screens/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -31,6 +31,12 @@ function Ready() {
   return null;
 }
 
+/** Keeps Pro in step with App Store / Google Play purchases (store builds only). */
+function ProSync() {
+  useProSync();
+  return null;
+}
+
 function Screens() {
   const { path, query } = useRoute();
   const [a, b] = path;
@@ -48,7 +54,7 @@ function Screens() {
   else if (a === 'training') { section = 'training'; el = <Training />; }
   else if (a === 'profile') { section = 'profile'; el = <Profile />; }
   else if (a === 'pro' && !ALL_FREE) { section = 'profile'; el = <Pro />; }
-  return <Layout section={section}><Suspense fallback={<Loading />}><Ready />{el}</Suspense></Layout>;
+  return <Layout section={section}><ProSync /><Suspense fallback={<Loading />}><Ready />{el}</Suspense></Layout>;
 }
 
 export function App() {

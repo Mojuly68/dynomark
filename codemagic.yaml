@@ -16,6 +16,9 @@ workflows:
       vars:
         # The app's Apple ID: App Store Connect → DYNOMARK → App Information → Apple ID.
         APP_STORE_APPLE_ID: 6838461384
+        # RevenueCat public SDK key for iOS (starts with "appl_"; public by design, safe to commit).
+        # Empty = everything free with no paywall (the 1.0 behaviour). Set it to turn on Pro purchases (1.1).
+        VITE_RC_APPLE_KEY: ""
       node: 22
       xcode: latest
     scripts:

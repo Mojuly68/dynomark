@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
 import { useStore } from '../store/Store';
 import { useToast } from '../components/Toast';
@@ -6,7 +6,8 @@ import { Logo } from '../components/Logo';
 import { Button, IconButton, cx } from '../components/ui';
 import { navigate } from '../lib/router';
 import { haptic } from '../lib/native';
-import { PLANS, PRO_PERKS, PRO_PREVIEW, grantPro, purchase, restore, usePro } from '../lib/pro';
+import { PLANS, PRO_PERKS, PRO_PREVIEW, PURCHASES_LIVE, grantPro, purchase, restore, usePro } from '../lib/pro';
+import { storePrices, type StorePrice } from '../lib/billing';
 import type { ProPlan } from '../types';
 
 const COMPARE: [string, boolean][] = [
@@ -29,21 +30,39 @@ export function Pro() {
   const [plan, setPlan] = useState<ProPlan>('year');
   const [status, setStatus] = useState('');
   const [compare, setCompare] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [prices, setPrices] = useState<Partial<Record<ProPlan, StorePrice>>>({});
+  useEffect(() => { if (PURCHASES_LIVE) storePrices().then(setPrices).catch(() => undefined); }, []);
+  const priceOf = (id: ProPlan) => prices[id]?.price ?? PLANS.find((p) => p.id === id)!.price;
   const cur = PLANS.find((p) => p.id === plan)!;
   const back = () => (history.length > 1 ? history.back() : navigate('/'));
 
   const buy = async () => {
+    setBusy(true); setStatus('');
     const r = await purchase(plan);
-    if (r === 'preview') {
+    setBusy(false);
+    if (r.kind === 'preview') {
       update((d) => grantPro(d, plan, 'preview'));
       void haptic('success');
       toast('Pro preview on. No payment was taken.');
       back();
-    } else setStatus('Purchases open once DYNOMARK is in the App Store and Google Play.');
+    } else if (r.kind === 'purchased') {
+      update((d) => grantPro(d, r.status.plan ?? plan, 'store', r.status.since));
+      void haptic('success');
+      toast('Welcome to DYNOMARK Pro');
+      back();
+    } else if (r.kind === 'error') setStatus(r.message);
+    else if (r.kind === 'unavailable') setStatus('Purchases aren’t available in this version.');
   };
   const doRestore = async () => {
+    setBusy(true); setStatus('');
     const r = await restore();
-    setStatus(r === 'none' ? 'No earlier purchase found. (Store purchases connect when DYNOMARK is in the stores.)' : 'Restore works once DYNOMARK is in the App Store and Google Play.');
+    setBusy(false);
+    if (r.kind === 'restored') {
+      update((d) => grantPro(d, r.status.plan ?? 'year', 'store', r.status.since));
+      toast('Pro restored');
+      back();
+    } else setStatus(r.kind === 'none' ? 'No earlier Pro purchase found for this Apple ID or Google account.' : r.kind === 'error' ? r.message : 'Restore isn’t available in this version.');
   };
 
   return (
@@ -61,7 +80,7 @@ export function Pro() {
 
       {isPro ? (
         <div className="rounded-2xl border border-accent/40 bg-accent/10 p-4 text-sm">
-          <b>You have Pro{pro?.source === 'preview' ? ' (testing preview)' : ''}.</b> Everything below is unlocked. Manage it in Profile.
+          <b>{pro?.source === 'founder' ? 'You’re a founding member: Pro is yours, free.' : `You have Pro${pro?.source === 'preview' ? ' (testing preview)' : ''}.`}</b> Everything below is unlocked.{pro?.source === 'founder' ? '' : ' Manage it in Profile.'}
         </div>
       ) : null}
 
@@ -83,15 +102,15 @@ export function Pro() {
                   className={cx('relative flex min-h-16 items-center gap-3 rounded-2xl border-2 px-3.5 py-2.5 text-left', on ? 'border-accent bg-accent/10' : 'border-line bg-surface')}>
                   <span aria-hidden="true" className={cx('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', on ? 'border-accent' : 'border-muted')}>{on && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}</span>
                   <span className="flex flex-1 flex-col"><b className="text-base">{o.name}</b><span className="text-xs text-muted">{o.note}</span></span>
-                  <span className="flex flex-col items-end"><b className="text-base">{o.price}</b><span className="text-xs text-muted">{o.per}</span></span>
+                  <span className="flex flex-col items-end"><b className="text-base">{priceOf(o.id)}</b><span className="text-xs text-muted">{prices[o.id] ? (o.id === 'year' ? (prices.year?.perMonth ? prices.year.perMonth + ' / month' : 'per year') : o.per) : o.per}</span></span>
                   {o.badge && <span className="absolute -top-2.5 right-3.5 rounded-full bg-orange px-2 py-px text-[11px] font-extrabold text-accent-ink">{o.badge}</span>}
                 </button>
               );
             })}
           </div>
 
-          <Button variant="primary" size="lg" onClick={buy}>{cur.cta}</Button>
-          <p className="m-0 -mt-1 text-center text-xs leading-relaxed text-muted">{cur.fine}</p>
+          <Button variant="primary" size="lg" onClick={buy} disabled={busy}>{busy ? 'One moment…' : cur.cta(priceOf(plan))}</Button>
+          <p className="m-0 -mt-1 text-center text-xs leading-relaxed text-muted">{cur.fine(priceOf(plan))}</p>
           {PRO_PREVIEW && <p className="m-0 text-center text-xs text-boulder">Testing build: this turns on a free Pro preview. No payment is taken.</p>}
         </>
       )}

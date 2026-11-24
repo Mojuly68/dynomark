@@ -19,3 +19,7 @@ store/*.png
 keystore.properties
 .env
 .env.*
+
+# Licensed stock footage (Getty) and rendered ads: never commit (licence does not allow redistribution)
+store/video/
+*.tsbuildinfo
