@@ -14,6 +14,13 @@ import type { AppData, ProPlan, ProState } from '../types';
  * with VITE_PRO_PREVIEW=false (codemagic.yaml does this), or Apple will reject a free unlock.
  */
 export const PRO_PREVIEW = import.meta.env.VITE_PRO_PREVIEW !== 'false';
+/** Set to true once purchase()/restore() really talk to the stores (RevenueCat + store products). */
+export const PURCHASES_LIVE = false;
+/**
+ * Store build with no working purchases (v1.0): every feature is free and no Pro UI is shown,
+ * because Apple rejects buy buttons that can't buy (Guideline 2.1).
+ */
+export const ALL_FREE = !PRO_PREVIEW && !PURCHASES_LIVE;
 
 export interface PlanInfo { id: ProPlan; name: string; price: string; per: string; note: string; badge?: string; cta: string; fine: string }
 /** Example prices until the store products exist; the stores will supply local prices. */
@@ -37,7 +44,7 @@ export const PRO_PERKS = [
 export function usePro() {
   const { data } = useStore();
   const pro = data.settings.pro;
-  return { isPro: !!pro, pro };
+  return { isPro: ALL_FREE || !!pro, pro };
 }
 
 export const grantPro = (d: AppData, plan: ProPlan, source: ProState['source']): AppData =>

@@ -14,7 +14,7 @@ import { isNative } from '../lib/native';
 import { squarePhoto } from '../lib/image';
 import { Avatar } from '../components/Avatar';
 import { AboutYou } from '../components/AboutYou';
-import { PLANS, PRO_PREVIEW, ProBadge, endPro, grantPro, manageSubscriptionUrl, usePro } from '../lib/pro';
+import { ALL_FREE, PLANS, PRO_PREVIEW, ProBadge, endPro, grantPro, manageSubscriptionUrl, usePro } from '../lib/pro';
 
 export function Profile() {
   const { data, update, replace, gyms } = useStore();
@@ -83,7 +83,7 @@ export function Profile() {
         </Card>
       </div>
 
-      <ProCard />
+      {!ALL_FREE && <ProCard />}
 
       <AboutYou key={data.settings.units} />
 

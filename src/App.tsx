@@ -4,7 +4,7 @@ import { ToastProvider } from './components/Toast';
 import { Layout } from './components/Layout';
 import { useRoute } from './lib/router';
 import { hideLaunch } from './lib/pwa';
-import { UpsellProvider } from './lib/pro';
+import { ALL_FREE, UpsellProvider } from './lib/pro';
 
 // Each screen is its own chunk, so the first launch only downloads what it shows.
 const Dashboard = lazy(() => import('./screens/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -47,7 +47,7 @@ function Screens() {
   else if (a === 'projects') { section = 'projects'; el = <Projects focus={query.get('id')} />; }
   else if (a === 'training') { section = 'training'; el = <Training />; }
   else if (a === 'profile') { section = 'profile'; el = <Profile />; }
-  else if (a === 'pro') { section = 'profile'; el = <Pro />; }
+  else if (a === 'pro' && !ALL_FREE) { section = 'profile'; el = <Pro />; }
   return <Layout section={section}><Suspense fallback={<Loading />}><Ready />{el}</Suspense></Layout>;
 }
 
