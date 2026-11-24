@@ -29,6 +29,13 @@ Fallback if taken: `DYNOMARK Climbing Tracker`
 **Age rating:** answer "None" to every content question → 4+.
 
 **App Privacy:** Data Not Collected. (Everything is stored on the device; there are no accounts, analytics or ads.)
+**App Privacy from 1.1 (Pro via RevenueCat):** change to "Data collected":
+- Purchases → **Purchase History**: used for App Functionality (and Analytics: plan counts in RevenueCat). Not linked to the user's identity (random app user ID). Not used for tracking.
+- Identifiers: none declared (RevenueCat's ID is a random per-install ID; no IDFA, no account).
+- Everything else (health/fitness, body data, photos, location, contact info): not collected; it stays on the device.
+Also add at the end of the description for 1.1:
+`Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
+`Privacy Policy: https://studio-vektor.com/send/privacy.html`
 
 **App Review notes:**
 `No login needed. The app opens with a demo account full of sample data (labelled "Demo"); Profile → "Start fresh with my own log" clears it. All data stays on the device; there is no server. Camera/photo access is only requested when the user picks a profile photo.`
