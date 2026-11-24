@@ -64,6 +64,10 @@ export function Pro() {
       update((d) => grantPro(d, r.status.plan ?? 'year', 'store', r.status.since));
       toast('Pro restored');
       back();
+    } else if (r.kind === 'founder') {
+      update((d) => grantPro(d, 'life', 'founder', r.since ?? undefined));
+      toast('Welcome back, founding member: Pro is yours');
+      back();
     } else setStatus(r.kind === 'none' ? 'No earlier Pro purchase found for this Apple ID or Google account.' : r.kind === 'error' ? r.message : 'Restore isn’t available in this version.');
   };
 

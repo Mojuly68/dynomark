@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Lock } from 'lucide-react';
 import { useStore } from '../store/Store';
 import { BILLING_READY, buy, onStoreChange, restoreStore, storeStatus, type StoreStatus } from './billing';
-import { founderSince } from './membership';
+import { founderSince, isFounderBuild, markFounder } from './membership';
 import { Button, Sheet } from '../components/ui';
 import { navigate } from './router';
 import type { AppData, ProPlan, ProState } from '../types';
@@ -70,11 +70,17 @@ export function useProSync() {
   const { update } = useStore();
   useEffect(() => {
     if (!PURCHASES_LIVE) return;
-    const apply = (s: StoreStatus) => update((d) => {
-      const cur = d.settings.pro;
-      if (s.active) return cur?.source === 'store' && cur.plan === s.plan ? d : grantPro(d, s.plan ?? 'year', 'store', s.since);
-      return cur?.source === 'store' ? endPro(d) : d;
-    });
+    const apply = (s: StoreStatus) => {
+      // Apple says this Apple ID first downloaded the all-free 1.0: founding member, on any phone, after any reinstall.
+      const founder = isFounderBuild(s.firstBuild);
+      if (founder) markFounder(s.firstDownload);
+      update((d) => {
+        const cur = d.settings.pro;
+        if (s.active) return cur?.source === 'store' && cur.plan === s.plan ? d : grantPro(d, s.plan ?? 'year', 'store', s.since);
+        if (founder) return cur?.source === 'founder' ? d : grantPro(d, 'life', 'founder', founderSince() ?? undefined);
+        return cur?.source === 'store' ? endPro(d) : d;
+      });
+    };
     storeStatus().then(apply).catch(() => undefined);
     onStoreChange(apply).catch(() => undefined);
   }, [update]);
@@ -103,12 +109,14 @@ export async function purchase(plan: ProPlan): Promise<PurchaseResult> {
   }
 }
 /** Restore earlier purchases from the user's Apple ID or Google account. */
-export async function restore(): Promise<{ kind: 'restored'; status: StoreStatus } | { kind: 'none' } | { kind: 'unavailable' } | { kind: 'error'; message: string }> {
+export async function restore(): Promise<{ kind: 'restored'; status: StoreStatus } | { kind: 'founder'; since: string | null } | { kind: 'none' } | { kind: 'unavailable' } | { kind: 'error'; message: string }> {
   if (PRO_PREVIEW) return { kind: 'none' };
   if (!PURCHASES_LIVE) return { kind: 'unavailable' };
   try {
     const s = await restoreStore();
-    return s.active ? { kind: 'restored', status: s } : { kind: 'none' };
+    if (s.active) return { kind: 'restored', status: s };
+    if (isFounderBuild(s.firstBuild)) { markFounder(s.firstDownload); return { kind: 'founder', since: founderSince() }; }
+    return { kind: 'none' };
   } catch (e) {
     return { kind: 'error', message: e instanceof Error ? e.message : 'Restore could not be completed.' };
   }

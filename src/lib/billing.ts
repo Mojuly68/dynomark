@@ -33,14 +33,22 @@ function rc(): Promise<RC> {
   return rcReady;
 }
 
-export interface StoreStatus { active: boolean; plan?: ProPlan; since?: string }
+/**
+ * `firstBuild`: the App Store build number of the first DYNOMARK this Apple ID ever downloaded (Apple keeps it
+ * per Apple ID, across reinstalls and new phones). Null when unknown, on Android, and in Apple's sandbox
+ * (TestFlight / App Review), where Apple reports "1.0" instead of a build number.
+ */
+export interface StoreStatus { active: boolean; plan?: ProPlan; since?: string; firstBuild?: number | null; firstDownload?: string | null }
 
 const planOf = (id: string): ProPlan => (id.includes('lifetime') ? 'life' : id.includes('monthly') ? 'month' : 'year');
 
 type CustomerInfo = Awaited<ReturnType<RC['Purchases']['getCustomerInfo']>>['customerInfo'];
 function statusOf(info: CustomerInfo): StoreStatus {
   const e = info.entitlements.active[ENTITLEMENT];
-  return e ? { active: true, plan: planOf(e.productIdentifier), since: e.originalPurchaseDate } : { active: false };
+  // Production receipts carry the build number ("2"); the sandbox always says "1.0", so only whole numbers count.
+  const v = info.originalApplicationVersion;
+  const first = { firstBuild: v && /^\d+$/.test(v) ? Number(v) : null, firstDownload: info.originalPurchaseDate ?? null };
+  return e ? { active: true, plan: planOf(e.productIdentifier), since: e.originalPurchaseDate, ...first } : { active: false, ...first };
 }
 
 /** Current Pro status from the store (source of truth for paid Pro). */
