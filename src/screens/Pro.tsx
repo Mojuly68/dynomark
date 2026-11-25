@@ -34,7 +34,7 @@ export function Pro() {
   const [prices, setPrices] = useState<Partial<Record<ProPlan, StorePrice>>>({});
   useEffect(() => { if (PURCHASES_LIVE) storePrices().then(setPrices).catch(() => undefined); }, []);
   const priceOf = (id: ProPlan) => prices[id]?.price ?? PLANS.find((p) => p.id === id)!.price;
-  // Free trial only when the store says this customer gets one (store builds); the designed 7 days in testing builds.
+  // Free trial only when the store says this customer gets one (store builds); the designed 30 days in testing builds.
   const trialOf = (id: ProPlan): number | null => (id !== 'year' ? null : PURCHASES_LIVE ? prices.year?.freeTrialDays ?? null : PREVIEW_TRIAL_DAYS);
   const cur = PLANS.find((p) => p.id === plan)!;
   const back = () => (history.length > 1 ? history.back() : navigate('/'));
