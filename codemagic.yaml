@@ -47,3 +47,43 @@ workflows:
         # Internal testers (group "Climbers") get every build automatically. External beta review would need
         # TestFlight Test Information filled in, so it stays off.
         submit_to_testflight: false
+
+  android-test-apk:
+    name: DYNOMARK Android → test APK
+    # Builds a signed APK (to share with testers as a download link) and the AAB (for Google Play).
+    # Start it by hand. Sideloaded APK installs do NOT count as Play closed-test testers.
+    instance_type: linux_x2
+    max_build_duration: 40
+    environment:
+      # Upload key added in Codemagic → Code signing identities → Android keystores, reference name below.
+      android_signing:
+        - dynomark_upload
+      node: 22
+      java: 21
+    scripts:
+      - name: Install packages
+        script: npm ci
+      - name: Build the web app (store build, Pro testing switch off)
+        script: VITE_PRO_PREVIEW=false npm run build
+      - name: Copy it into the Android app
+        script: npx cap sync android
+      - name: Point Gradle at the Codemagic keystore
+        script: |
+          cat > "$HOME/dynomark-signing.properties" <<PROPS
+          storeFile=$CM_KEYSTORE_PATH
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          PROPS
+          echo "DYNOMARK_SIGNING=$HOME/dynomark-signing.properties" >> $CM_ENV
+      - name: Build the signed APK and AAB
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease
+          # Stop if Gradle fell back to an unsigned APK (keystore missing or wrong).
+          test -f app/build/outputs/apk/release/app-release.apk
+          mv app/build/outputs/apk/release/app-release.apk "app/build/outputs/apk/release/DYNOMARK-$(grep -m1 versionName app/build.gradle | cut -d'"' -f2)-test.apk"
+    artifacts:
+      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/bundle/release/*.aab
