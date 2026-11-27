@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Lock } from 'lucide-react';
 import { useStore } from '../store/Store';
 import { BILLING_READY, buy, onStoreChange, restoreStore, storeStatus, type StoreStatus } from './billing';
-import { founderSince, isFounderBuild, markFounder } from './membership';
+import { founderSince, isFounder, markFounder } from './membership';
 import { Button, Sheet } from '../components/ui';
 import { navigate } from './router';
 import type { AppData, ProPlan, ProState } from '../types';
@@ -71,8 +71,8 @@ export function useProSync() {
   useEffect(() => {
     if (!PURCHASES_LIVE) return;
     const apply = (s: StoreStatus) => {
-      // Apple says this Apple ID first downloaded the all-free 1.0: founding member, on any phone, after any reinstall.
-      const founder = isFounderBuild(s.firstBuild);
+      // Apple says this Apple ID first downloaded 1.0, or before the founder deadline: founding member, on any phone.
+      const founder = isFounder(s);
       if (founder) markFounder(s.firstDownload);
       update((d) => {
         const cur = d.settings.pro;
@@ -115,7 +115,7 @@ export async function restore(): Promise<{ kind: 'restored'; status: StoreStatus
   try {
     const s = await restoreStore();
     if (s.active) return { kind: 'restored', status: s };
-    if (isFounderBuild(s.firstBuild)) { markFounder(s.firstDownload); return { kind: 'founder', since: founderSince() }; }
+    if (isFounder(s)) { markFounder(s.firstDownload); return { kind: 'founder', since: founderSince() }; }
     return { kind: 'none' };
   } catch (e) {
     return { kind: 'error', message: e instanceof Error ? e.message : 'Restore could not be completed.' };

@@ -1,8 +1,8 @@
 import { isNative } from './native';
 
-// Founding members: everyone who got the all-free 1.0 keeps Pro for free, for life.
+// Founding members: everyone who got the all-free 1.0, or first downloaded before FOUNDER_CUTOFF, keeps Pro free for life.
 // Two sources, either one is enough:
-//  1. Apple's record of the first DYNOMARK build this Apple ID downloaded (lib/billing.ts StoreStatus.firstBuild).
+//  1. Apple's record of the first DYNOMARK build this Apple ID downloaded, and when (lib/billing.ts StoreStatus).
 //     It follows the person across reinstalls and new phones. Checked at every launch and on Restore purchases.
 //  2. A marker on this device: the first build with this code that found an existing climbing log (only 1.0 wrote
 //     logs without the install marker). Works offline and before the store answers.
@@ -16,7 +16,23 @@ const FOUNDER_KEY = 'dynomark.founder';
  */
 export const FOUNDER_MAX_BUILD = 2;
 
-export const isFounderBuild = (firstBuild: number | null | undefined) => firstBuild != null && firstBuild <= FOUNDER_MAX_BUILD;
+/**
+ * Founder deadline: everyone whose Apple ID first downloaded DYNOMARK before the end of Tue 2 Dec 2026, Pacific time,
+ * is a founding member too, whatever build they got (1.1 went live early, on 26 Nov). Matches the founder email.
+ */
+export const FOUNDER_CUTOFF = '2026-12-03T08:00:00Z';
+
+/**
+ * Founding member according to Apple: first download was the all-free 1.0, or happened before FOUNDER_CUTOFF.
+ * Only production receipts count (they carry a whole build number); the sandbox (TestFlight, App Review) reports
+ * "1.0", so `firstBuild` is null there and reviewers always see the normal paywall.
+ */
+export function isFounder(s: { firstBuild?: number | null; firstDownload?: string | null }) {
+  if (s.firstBuild == null) return false;
+  if (s.firstBuild <= FOUNDER_MAX_BUILD) return true;
+  const at = s.firstDownload ? Date.parse(s.firstDownload) : NaN;
+  return Number.isFinite(at) && at < Date.parse(FOUNDER_CUTOFF);
+}
 
 /**
  * Run once at startup, before demo data is created. `hadData` = a climbing log already existed on this device.

@@ -162,7 +162,7 @@ function ProCard() {
         <>
           <p className="m-0 text-sm">
             {pro.source === 'founder'
-              ? <>Founding member since {fmtDayYear(pro.since)}. You were here for 1.0, so Pro stays free for you. Thank you.</>
+              ? <>Founding member since {fmtDayYear(pro.since)}. You were here from the start, so Pro stays free for you. Thank you.</>
               : <>{planName} · since {fmtDayYear(pro.since)}{pro.source === 'preview' ? ' · testing preview, no payment' : ''}</>}
           </p>
           <div className="flex flex-wrap gap-2">

@@ -193,7 +193,7 @@ export type ProPlan = 'year' | 'month' | 'life';
 export interface ProState {
   plan: ProPlan;
   since: ISODate;
-  /** preview = testing switch, store = paid through the App Store / Google Play, founder = installed the all-free 1.0. */
+  /** preview = testing switch, store = paid through the App Store / Google Play, founder = first downloaded 1.0 or before the founder deadline (lib/membership.ts). */
   source: 'preview' | 'store' | 'founder';
 }
 

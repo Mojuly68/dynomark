@@ -1,8 +1,8 @@
 # Founding-member email (send now; deadline Tue 2 Dec 2026)
 
-Plan: 1.0 is live (25 Nov). Submit 1.1 (Pro) as soon as build 1.1 (8) is in, with "Manually release this version"
-(review takes 1-2 days), then release it on the morning of Wed 3 Dec, so everyone who downloads 1.0 up to and
-including Tue 2 Dec is a founding member.
+Updated 27 Nov 2026: 1.1 (Pro) went live on 26 Nov, earlier than planned. From 1.2 the app counts as founders everyone
+whose Apple ID first downloaded DYNOMARK before the end of Tue 2 Dec (Pacific), whatever version they got.
+Until 1.2 is out, new downloads see the Pro paywall: the email tells friends not to buy.
 
 ---
 
@@ -21,14 +21,14 @@ You log a send in a few taps (grade, style, attempts), and it turns your session
 
 Your log stays on your phone. No account, no ads.
 
-**Here's the deal for friends:** on 3 December I'm adding DYNOMARK Pro, a paid upgrade for the long-range stuff (yearly progress, monthly reports, gym comparisons, hangboard history and every share-card style). It will be $19.99 a year. Logging will always stay free for everyone.
+**Here's the deal for friends:** DYNOMARK has a paid upgrade, DYNOMARK Pro, for the long-range stuff (yearly progress, monthly reports, gym comparisons, hangboard history and every share-card style). It's $19.99 a year. Logging will always stay free for everyone.
 
 But anyone who downloads DYNOMARK **by Tuesday 2 December** becomes a **founding member and gets Pro free, for life**. It's tied to your Apple ID, so it stays with you on a new phone too.
 
 To claim it:
-1. Download DYNOMARK from the link above (iPhone).
+1. Download DYNOMARK from the link above (iPhone) by Tuesday 2 December.
 2. Open it once and log a climb or two.
-3. That's it. When the Pro update arrives, you're already in.
+3. **Don't buy Pro.** You'll see the Pro plans in the app, but as a founder you get it free: it unlocks by itself with the next update (1.2), coming in the next few days. Make sure App Store updates are on, or update by hand.
 
 It's iPhone only for now; Android is on the way.
 
