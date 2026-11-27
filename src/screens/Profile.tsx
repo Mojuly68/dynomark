@@ -61,7 +61,7 @@ export function Profile() {
               {data.user.photo && <button type="button" className="text-xs font-semibold text-muted hover:text-ink" onClick={() => { update((d) => ({ ...d, user: { ...d.user, photo: undefined } })); toast('Photo removed'); }}>Remove</button>}
             </div>
             <label className="flex flex-1 flex-col gap-1.5 text-[13px] text-muted">Display name
-              <input className={inputCls} value={name} maxLength={40} onChange={(e) => setName(e.target.value)} onBlur={() => update((d) => ({ ...d, user: { ...d.user, name: name.trim() || d.user.name } }))} />
+              <input className={inputCls} value={name} maxLength={40} placeholder="Enter name" autoComplete="given-name" onChange={(e) => setName(e.target.value)} onBlur={() => update((d) => ({ ...d, user: { ...d.user, name: name.trim() } }))} />
             </label>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
@@ -113,7 +113,7 @@ export function Profile() {
         </p>
       </Card>
 
-      <Sheet open={confirm === 'fresh'} onClose={() => setConfirm(null)} title="Clear sample data?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="primary" className="flex-1" onClick={() => { replace({ ...createEmptyData(name.trim() || 'Climber'), settings: { ...createEmptyData().settings, theme: data.settings.theme, pro: data.settings.pro } }); setConfirm(null); toast('Fresh start. Log your first climb.'); navigate('/log'); }}>Clear and start</Button></div>}>
+      <Sheet open={confirm === 'fresh'} onClose={() => setConfirm(null)} title="Clear sample data?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="primary" className="flex-1" onClick={() => { replace({ ...createEmptyData(name.trim()), settings: { ...createEmptyData().settings, theme: data.settings.theme, pro: data.settings.pro } }); setConfirm(null); toast('Fresh start. Log your first climb.'); navigate('/log'); }}>Clear and start</Button></div>}>
         <p className="m-0 text-sm text-muted">All demo sessions, climbs, projects and workouts will be removed from this device. You can load the demo again later.</p>
       </Sheet>
       <Sheet open={confirm === 'demo'} onClose={() => setConfirm(null)} title="Replace your data with the demo?" footer={<div className="flex gap-2"><Button variant="ghost" className="flex-1" onClick={() => setConfirm(null)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { { const demo = createDemoData(); replace({ ...demo, settings: { ...demo.settings, pro: data.settings.pro } }); } setConfirm(null); toast('Demo account loaded'); navigate('/'); }}>Replace</Button></div>}>

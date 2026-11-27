@@ -214,7 +214,7 @@ export function createDemoData(now = new Date()): AppData {
   };
 }
 
-export function createEmptyData(name = 'Climber'): AppData {
+export function createEmptyData(name = ''): AppData {
   return {
     version: 1,
     user: { id: 'local-user', name, isDemo: false, createdAt: new Date().toISOString() },

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, Flame, Plus, Repeat2, Trophy } from 'lucide-react';
+import { ChevronRight, Flame, Plus, Repeat2, Trophy, UserRound } from 'lucide-react';
 import { useStore } from '../store/Store';
 import { useToast } from '../components/Toast';
 import { GymPicker } from '../components/GymPicker';
@@ -85,9 +85,9 @@ export function Dashboard() {
       <header className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <span className="text-[13px] text-muted">{now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-          <h1 className="m-0 font-display text-[28px] font-extrabold tracking-tight lg:text-[34px]">{greeting(now)}, {data.user.name}</h1>
+          <h1 className="m-0 font-display text-[28px] font-extrabold tracking-tight lg:text-[34px]">{greeting(now)}{data.user.name.trim() ? ', ' + data.user.name.trim() : ''}</h1>
         </div>
-        <a href={href('/profile')} aria-label="Profile and settings" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full no-underline">{data.user.photo ? <Avatar user={data.user} size={44} /> : <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface-2 font-display text-[15px] font-extrabold text-ink">{data.user.name.slice(0, 2).toUpperCase()}</span>}</a>
+        <a href={href('/profile')} aria-label="Profile and settings" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full no-underline">{data.user.photo ? <Avatar user={data.user} size={44} /> : <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface-2 font-display text-[15px] font-extrabold text-ink">{data.user.name.trim() ? data.user.name.trim().slice(0, 2).toUpperCase() : <UserRound size={20} aria-hidden="true" />}</span>}</a>
       </header>
 
       <div className="flex flex-col gap-2.5 sm:flex-row">

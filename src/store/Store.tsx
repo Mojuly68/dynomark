@@ -2,7 +2,7 @@ import { syncStatusBar } from '../lib/native';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AppData, Gym, GymOverride, ID } from '../types';
 import { DIRECTORY } from '../data/gyms';
-import { createDemoData } from '../data/demo';
+import { createEmptyData } from '../data/demo';
 import { localStore, type DataStore } from './storage';
 import { normalize } from './actions';
 import { markInstall } from '../lib/membership';
@@ -22,7 +22,8 @@ export function StoreProvider({ children, store = localStore }: { children: Reac
   const [data, setData] = useState<AppData>(() => {
     const saved = store.load();
     markInstall(!!saved);
-    return normalize(saved ?? createDemoData());
+    // New installs start with an empty log and no name; the demo account is one tap away in Profile.
+    return normalize(saved ?? createEmptyData(''));
   });
   const first = useRef(true);
 
