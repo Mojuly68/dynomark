@@ -12,6 +12,7 @@ import { deleteSession } from '../store/actions';
 import { href, navigate } from '../lib/router';
 import type { ClimbType } from '../types';
 import { LockLabel, usePro, useUpsell } from '../lib/pro';
+import { PostToCrew } from '../crew/PostToCrew';
 
 type CardKind = 'session' | 'pr' | 'month' | 'project' | 'progression';
 
@@ -104,6 +105,8 @@ export function SessionSummary({ id }: { id: string }) {
           </div>
         ))}
       </div>
+
+      <PostToCrew sessionId={id} />
 
       {sum.records.length > 0 && (
         <section className="flex flex-col gap-2.5 rounded-[20px] border border-accent/40 bg-accent/10 p-4">

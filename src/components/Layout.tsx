@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { BarChart3, Dumbbell, Flag, Home, MapPin, Plus, User } from 'lucide-react';
+import { BarChart3, Dumbbell, Flag, Home, MapPin, Plus, User, Users } from 'lucide-react';
+import { CREW_ON } from '../crew/CrewProvider';
 import { useStore } from '../store/Store';
 import { href } from '../lib/router';
 import { fmtClock } from '../lib/dates';
@@ -13,9 +14,11 @@ const NAV = [
   { id: 'progress', to: '/progress', label: 'Progress', short: 'Progress', icon: BarChart3 },
   { id: 'projects', to: '/projects', label: 'Projects', short: 'Projects', icon: Flag },
   { id: 'training', to: '/training', label: 'Training', short: 'Train', icon: Dumbbell },
+  ...(CREW_ON ? [{ id: 'crew', to: '/crew', label: 'Crew', short: 'Crew', icon: Users }] : []),
   { id: 'profile', to: '/profile', label: 'Profile', short: 'Profile', icon: User },
 ];
-const MOBILE = ['home', 'progress', 'log', 'projects', 'training'];
+// With Crew on, Crew takes the Projects tab; Projects stays one tap away on Home.
+const MOBILE = ['home', 'progress', 'log', CREW_ON ? 'crew' : 'projects', 'training'];
 
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());

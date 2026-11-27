@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#111214" />
+<title>Join my crew · DYNOMARK</title>
+<link rel="icon" type="image/svg+xml" href="../dynomark-favicon.svg" />
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #111214; color: #F2F1EC; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, "Segoe UI", sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: max(env(safe-area-inset-top), 36px) 22px 56px; display: flex; flex-direction: column; gap: 18px; }
+  h1 { font-size: 34px; line-height: 1.08; margin: 8px 0 0; letter-spacing: -0.02em; font-weight: 900; }
+  h1 span { color: #C6F432; }
+  p { margin: 0; color: #B5B7BD; }
+  .user { font-family: ui-monospace, "SF Mono", "Roboto Mono", monospace; font-weight: 700; color: #F2F1EC; }
+  ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+  li { counter-increment: s; display: flex; gap: 12px; align-items: flex-start; background: #1A1B1E; border: 1px solid #2E3035; border-radius: 16px; padding: 14px; color: #D8D7D2; }
+  li::before { content: counter(s); flex-shrink: 0; width: 28px; height: 28px; border-radius: 14px; background: #C6F432; color: #111214; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  a.btn, button { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 16px; font: inherit; font-weight: 800; font-size: 16px; text-decoration: none; cursor: pointer; }
+  a.btn { background: #C6F432; color: #111214; }
+  button { background: #1A1B1E; color: #F2F1EC; border: 1px solid #3A3D43; width: 100%; }
+  .muted { color: #9A9CA3; font-size: 13px; }
+  a { color: #C6F432; }
+  :focus-visible { outline: 2px solid #C6F432; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+<svg width="170" height="24" viewBox="-38 -14 832 118" role="img" aria-label="DYNOMARK"><g transform="skewX(-14)" fill="#F2F1EC" fill-rule="evenodd"><path d="M0,0H58L82,24V76L58,100H0ZM26,26V74H50L56,68V32L50,26Z M94,0H122L136,26L150,0H178L149,54V100H123V54Z M190,100V0H218L246,48V0H272V100H244L216,52V100Z M308,0H342L366,24V76L342,100H308L284,76V24ZM316,26H334L340,32V68L334,74H316L310,68V32Z M378,100V0H408L430,40L452,0H482V100H456V46L436,82H424L404,46V100Z M494,100V24L518,0H554L578,24V100H552V68H520V100ZM520,44H552V32L546,26H526L520,32Z M590,0H650L674,24V46L660,60L676,100H647L635,68H616V100H590ZM616,26V44H642L648,38V32L642,26Z M686,0H712V38L742,0H772L734,48L772,100H741L712,60V100H686Z"></path></g><line x1="-34" y1="98" x2="760" y2="10" stroke="#111214" stroke-width="7"></line><circle cx="778" cy="-2" r="10" fill="#FF8A3D"></circle></svg>
+<h1>Join <span id="who">my</span><br>crew.</h1>
+<p><span class="user" id="handle">A friend</span> wants to see your sends on DYNOMARK, the climbing log. Friends see each other's sessions and cheer with a tap. No comments, no strangers.</p>
+<ol>
+  <li><span>Get DYNOMARK for iPhone: <a href="https://apps.apple.com/us/app/dynomark-climbing-log/id6838461384">App Store</a>.</span></li>
+  <li><span>Open the app, tap <b>Crew</b> and sign in with Apple.</span></li>
+  <li><span>Tap <b>Add friends</b> and search for <span class="user" id="handle2">their username</span>.</span></li>
+</ol>
+<a class="btn" href="https://apps.apple.com/us/app/dynomark-climbing-log/id6838461384">Get DYNOMARK</a>
+<button type="button" id="copy" hidden>Copy username</button>
+<p class="muted" id="status" role="status"></p>
+<p class="muted">Your climbing log stays on your phone. Only sessions you choose to post are shared with friends you accept. <a href="../privacy.html">Privacy policy</a></p>
+</main>
+<script>
+  (function () {
+    var u = (new URLSearchParams(location.search).get('u') || '').toLowerCase();
+    if (!/^[a-z0-9_]{3,20}$/.test(u)) return;
+    var h = '@' + u;
+    document.getElementById('who').textContent = h + "'s";
+    document.getElementById('handle').textContent = h;
+    document.getElementById('handle2').textContent = h;
+    document.title = 'Join ' + h + "'s crew · DYNOMARK";
+    var b = document.getElementById('copy');
+    if (navigator.clipboard) {
+      b.hidden = false;
+      b.textContent = 'Copy ' + h;
+      b.addEventListener('click', function () {
+        navigator.clipboard.writeText(u).then(function () { document.getElementById('status').textContent = 'Copied ' + h + '. Paste it in Crew › Add friends.'; });
+      });
+    }
+  })();
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@
     "splash": "node scripts/make-splash.mjs"
   },
   "dependencies": {
+    "@capacitor-community/apple-sign-in": "^7.1.0",
     "@capacitor/android": "^8.6.2",
     "@capacitor/core": "^8.6.2",
     "@capacitor/filesystem": "^8.1.5",
@@ -22,7 +23,9 @@
     "@fontsource-variable/roboto": "^5.3.0",
     "@fontsource-variable/roboto-mono": "^5.3.0",
     "@revenuecat/purchases-capacitor": "^14.1.2",
+    "@supabase/supabase-js": "^2.119.2",
     "lucide-react": "^1.77.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "recharts": "^3.11.0"

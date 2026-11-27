@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { useRoute } from './lib/router';
 import { hideLaunch } from './lib/pwa';
 import { ALL_FREE, UpsellProvider, useProSync } from './lib/pro';
+import { CREW_ON, CrewProvider } from './crew/CrewProvider';
 
 // Each screen is its own chunk, so the first launch only downloads what it shows.
 const Dashboard = lazy(() => import('./screens/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -20,6 +21,10 @@ const Training = lazy(() => import('./screens/Training').then((m) => ({ default:
 const Profile = lazy(() => import('./screens/Profile').then((m) => ({ default: m.Profile })));
 const Report = lazy(() => import('./screens/Report').then((m) => ({ default: m.Report })));
 const Pro = lazy(() => import('./screens/Pro').then((m) => ({ default: m.Pro })));
+const Crew = lazy(() => import('./screens/Crew').then((m) => ({ default: m.Crew })));
+const CrewAdd = lazy(() => import('./screens/CrewAdd').then((m) => ({ default: m.CrewAdd })));
+const CrewFriend = lazy(() => import('./screens/CrewFriend').then((m) => ({ default: m.CrewFriend })));
+const CrewSettings = lazy(() => import('./screens/CrewSettings').then((m) => ({ default: m.CrewSettings })));
 
 function Loading() {
   return <div role="status" aria-label="Loading" className="flex min-h-[50dvh] items-center justify-center"><span className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-route" aria-hidden="true" /></div>;
@@ -54,6 +59,13 @@ function Screens() {
   else if (a === 'training') { section = 'training'; el = <Training />; }
   else if (a === 'profile') { section = 'profile'; el = <Profile />; }
   else if (a === 'pro' && !ALL_FREE) { section = 'profile'; el = <Pro />; }
+  else if (a === 'crew' && CREW_ON) {
+    section = 'crew';
+    if (b === 'add') el = <CrewAdd prefill={query.get('u')} />;
+    else if (b === 'u' && path[2]) el = <CrewFriend id={path[2]} key={path[2]} />;
+    else if (b === 'settings') el = <CrewSettings />;
+    else el = <Crew />;
+  }
   return <Layout section={section}><ProSync /><Suspense fallback={<Loading />}><Ready />{el}</Suspense></Layout>;
 }
 
@@ -62,7 +74,9 @@ export function App() {
     <StoreProvider>
       <ToastProvider>
         <UpsellProvider>
-          <Screens />
+          <CrewProvider>
+            <Screens />
+          </CrewProvider>
         </UpsellProvider>
       </ToastProvider>
     </StoreProvider>
