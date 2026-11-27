@@ -16,10 +16,14 @@ Store and web builds show **no Crew tab** until a Crew server is configured, so 
 - Server: `supabase/migrations/20261127000000_crew.sql` (tables, row-level security, accept/delete functions).
 - Invite page: `public/c/index.html` → `studio-vektor.com/dynomark/c/?u=<username>`.
 
-## 1. Supabase project (you, ~10 min)
+## 1. Supabase project: DONE 27 Nov 2026
+
+Project `dynomark-crew` (eiiisquvxaveefwdzqyq). Both migrations ran (crew + crew_grants); URL and publishable key are in codemagic.yaml.
+Apple provider enabled with client ID com.studiovektor.dynomark (step 2.3 done). Steps below kept for a fresh project.
+
 
 1. supabase.com → New project, name `dynomark-crew`, region US West, free plan. Save the database password in your password manager.
-2. SQL Editor → paste the whole `supabase/migrations/20261127000000_crew.sql` → Run.
+2. SQL Editor → run `supabase/migrations/20261127000000_crew.sql`, then `20261127000100_crew_grants.sql` (newer projects grant no table access by default).
 3. Project Settings → API: copy the **Project URL** and the **anon public** key. Both are public by design.
    Paste them into `codemagic.yaml` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) or give them to Claude.
    Never paste the `service_role` key anywhere.
