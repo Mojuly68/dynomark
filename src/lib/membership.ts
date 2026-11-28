@@ -17,10 +17,10 @@ const FOUNDER_KEY = 'dynomark.founder';
 export const FOUNDER_MAX_BUILD = 2;
 
 /**
- * Founder deadline: everyone whose Apple ID first downloaded DYNOMARK before the end of Tue 2 Dec 2026, Pacific time,
- * is a founding member too, whatever build they got (1.1 went live early, on 26 Nov). Matches the founder email.
+ * Founder deadline: everyone whose Apple ID first downloaded DYNOMARK before the end of Tue 15 Dec 2026, Pacific time,
+ * is a founding member too, whatever build they got (1.1 went live early, on 26 Nov). Moved from 2 Dec on 28 Nov so the deadline falls after 1.3 ships.
  */
-export const FOUNDER_CUTOFF = '2026-12-03T08:00:00Z';
+export const FOUNDER_CUTOFF = '2026-12-16T08:00:00Z';
 
 /**
  * Founding member according to Apple: first download was the all-free 1.0, or happened before FOUNDER_CUTOFF.
