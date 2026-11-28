@@ -29,7 +29,7 @@ export function LoadCalculator() {
   return (
     <Card className="flex flex-col gap-3.5">
       <H2>Hangboard load</H2>
-      <Segmented label="Calculate" value={mode} onChange={setMode} options={[{ value: 'pct', label: 'Weight → % body weight' }, { value: 'load', label: '% → weight to add' }]} />
+      <Segmented label="Calculate" className="w-full" value={mode} onChange={setMode} options={[{ value: 'pct', label: '% of body weight' }, { value: 'load', label: 'Weight to add' }]} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">

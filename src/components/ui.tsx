@@ -77,7 +77,7 @@ export function Segmented<T extends string>({ options, value, onChange, label, s
           type="button"
           aria-pressed={value === o.value}
           onClick={() => onChange(o.value)}
-          className={cx('rounded-[9px] px-3 font-semibold transition-colors', size === 'sm' ? 'h-8 text-xs' : 'h-9 text-[13px]', value === o.value ? 'bg-ink text-bg' : 'text-muted hover:text-ink')}
+          className={cx('grow rounded-[9px] px-3 py-1 font-semibold leading-tight transition-colors', size === 'sm' ? 'min-h-8 text-xs' : 'min-h-9 text-[13px]', value === o.value ? 'bg-ink text-bg' : 'text-muted hover:text-ink')}
         >
           {o.label}
         </button>

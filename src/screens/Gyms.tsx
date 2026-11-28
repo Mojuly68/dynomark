@@ -3,18 +3,20 @@ import { MapPin, Plus, Search, Star } from 'lucide-react';
 import { gymDisciplines, useStore } from '../store/Store';
 import { useToast } from '../components/Toast';
 import { Button, Chip, Empty, H1, IconButton, Sheet, cx, inputCls } from '../components/ui';
-import { BRANDS, DISCIPLINE_LABEL } from '../data/gyms';
-import { addCustomGym, setCurrentGym, toggleFavorite } from '../store/actions';
+import { DISCIPLINE_LABEL, stateName } from '../data/gyms';
+import { addCustomGym, setCurrentGym, setHomeState, toggleFavorite } from '../store/actions';
+import { StateSelect, useHomeState } from '../components/GymPicker';
 import { href, navigate } from '../lib/router';
 import type { Discipline } from '../types';
 
-type Filter = 'all' | 'visited' | 'fav' | (typeof BRANDS)[number] | 'Custom';
+type Filter = string;
 
 export function Gyms() {
   const { data, update, replace, gyms, override } = useStore();
   const toast = useToast();
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const home = useHomeState();
   const [adding, setAdding] = useState(false);
   const visits = useMemo(() => {
     const m = new Map<string, number>();
@@ -23,19 +25,21 @@ export function Gyms() {
   }, [data.sessions]);
   const fav = new Set(data.settings.favorites);
   const t = q.trim().toLowerCase();
-  const match = (g: (typeof gyms)[number]) => !t || g.name.toLowerCase().includes(t) || g.city.toLowerCase().includes(t);
+  // Search looks through every state; without a search, the list shows your state (favorites always show).
+  const match = (g: (typeof gyms)[number]) => (t ? g.name.toLowerCase().includes(t) || g.city.toLowerCase().includes(t) || g.brand.toLowerCase().includes(t) : g.state === home || fav.has(g.id) || (filter === 'Custom' && g.brand === 'Custom'));
   const inF = (g: (typeof gyms)[number], f: Filter) => f === 'all' || (f === 'visited' ? visits.has(g.id) : f === 'fav' ? fav.has(g.id) : g.brand === f);
-  const list = gyms.filter((g) => match(g) && inF(g, filter)).sort((a, b) => (visits.get(b.id) ?? 0) - (visits.get(a.id) ?? 0) || a.name.localeCompare(b.name));
-  const filters: { v: Filter; l: string }[] = [{ v: 'all', l: 'All' }, { v: 'visited', l: 'Visited' }, { v: 'fav', l: '★ Favorites' }, ...BRANDS.map((b) => ({ v: b as Filter, l: b })), ...(data.customGyms.length ? [{ v: 'Custom' as Filter, l: 'Added by you' }] : [])];
+  const list = gyms.filter((g) => match(g) && inF(g, filter)).sort((a, b) => a.city.localeCompare(b.city) || (visits.get(b.id) ?? 0) - (visits.get(a.id) ?? 0) || a.name.localeCompare(b.name));
+  const brandsHere = Array.from(new Set(gyms.filter((g) => g.state === home && g.brand !== 'Custom').map((g) => g.brand))).sort();
+  const filters: { v: Filter; l: string }[] = [{ v: 'all', l: 'All' }, { v: 'visited', l: 'Visited' }, { v: 'fav', l: '★ Favorites' }, ...brandsHere.map((b) => ({ v: b as Filter, l: b })), ...(data.customGyms.length ? [{ v: 'Custom' as Filter, l: 'Added by you' }] : [])];
   const cur = gyms.find((g) => g.id === data.settings.currentGymId);
 
-  const [form, setForm] = useState({ name: '', city: '', address: '', website: '', disc: [] as Discipline[] });
+  const [form, setForm] = useState({ name: '', city: '', state: '', address: '', website: '', disc: [] as Discipline[] });
   const saveGym = () => {
     if (!form.name.trim() || !form.city.trim()) { toast('Add a name and city'); return; }
-    const r = addCustomGym(data, { name: form.name.trim(), city: form.city.trim(), state: '', address: form.address.trim() || undefined, website: form.website.trim(), disciplines: form.disc.length ? form.disc : null, amenities: [] });
+    const r = addCustomGym(data, { name: form.name.trim(), city: form.city.trim(), state: form.state || home, address: form.address.trim() || undefined, website: form.website.trim(), disciplines: form.disc.length ? form.disc : null, amenities: [] });
     replace(r.data);
     setAdding(false);
-    setForm({ name: '', city: '', address: '', website: '', disc: [] });
+    setForm({ name: '', city: '', state: '', address: '', website: '', disc: [] });
     toast('Added ' + r.gym.name);
     navigate('/gyms/' + r.gym.id);
   };
@@ -43,7 +47,7 @@ export function Gyms() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <H1 sub={gyms.length + ' gyms · Touchstone, Benchmark, Bridges'}>My Gyms</H1>
+        <H1 sub={gyms.length + ' gyms in ' + new Set(gyms.map((g) => g.state).filter(Boolean)).size + ' states'}>My Gyms</H1>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => navigate('/compare')}>Compare</Button>
           <Button variant="secondary" onClick={() => setAdding(true)}><Plus size={18} aria-hidden="true" />Add gym</Button>
@@ -58,17 +62,21 @@ export function Gyms() {
         </a>
       )}
 
+      <label className="flex flex-col gap-1.5 text-[13px] text-muted">
+        Your state
+        <StateSelect value={home} onChange={(st) => { update((d) => setHomeState(d, st)); setFilter('all'); }} />
+      </label>
       <label className="relative block">
-        <span className="sr-only">Search gyms by name or city</span>
+        <span className="sr-only">Search all gyms by name, city or brand</span>
         <Search size={18} className="pointer-events-none absolute left-3.5 top-[15px] text-muted" aria-hidden="true" />
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or city" className={cx(inputCls, 'pl-10')} />
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search all states" className={cx(inputCls, 'pl-10')} />
       </label>
       <div role="group" aria-label="Filter gyms" className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:flex-wrap lg:px-0">
         {filters.map((f) => (
           <Chip key={f.v} selected={filter === f.v} onClick={() => setFilter(f.v)}>{f.l} <span className="font-mono opacity-70">{gyms.filter((g) => match(g) && inF(g, f.v)).length}</span></Chip>
         ))}
       </div>
-      <p aria-live="polite" className="m-0 text-xs text-muted">{list.length} gym{list.length === 1 ? '' : 's'}{t ? ' matching “' + q.trim() + '”' : ''}</p>
+      <p aria-live="polite" className="m-0 text-xs text-muted">{list.length} gym{list.length === 1 ? '' : 's'}{t ? ' matching “' + q.trim() + '” in all states' : home ? ' in ' + stateName(home) + (fav.size ? ' plus your favorites' : '') : ''}</p>
 
       {list.length === 0 && <Empty title="No gyms match" body="Try another search, or add the gym yourself." action={<Button onClick={() => { setQ(''); setFilter('all'); }}>Clear filters</Button>} />}
 
@@ -81,8 +89,8 @@ export function Gyms() {
             <li key={g.id} className={cx('flex flex-col gap-2 rounded-[18px] border bg-surface p-3.5', current ? 'border-accent/50' : 'border-line')}>
               <div className="flex items-start gap-2">
                 <a href={href('/gyms/' + g.id)} className="flex min-w-0 flex-1 flex-col gap-0.5 text-ink no-underline">
-                  <span className="flex items-center gap-2"><b className="truncate text-[15px]">{g.name}</b>{current && <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-accent-ink">CURRENT</span>}</span>
-                  <span className="text-xs text-muted">{g.city} · {g.brand}{visits.get(g.id) ? ' · ' + visits.get(g.id) + ' visits' : ''}</span>
+                  <span className="flex items-center gap-2"><b className="text-[15px] leading-snug">{g.name}</b>{current && <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-accent-ink">CURRENT</span>}</span>
+                  <span className="text-xs text-muted">{g.city}{g.state ? ', ' + g.state : ''} · {g.brand}{visits.get(g.id) ? ' · ' + visits.get(g.id) + ' visits' : ''}</span>
                 </a>
                 <IconButton label={(isFav ? 'Remove ' : 'Add ') + g.name + (isFav ? ' from favorites' : ' to favorites')} aria-pressed={isFav} onClick={() => update((d) => toggleFavorite(d, g.id))} className="bg-transparent">
                   <Star size={20} className={isFav ? 'text-[#E0A800]' : 'text-muted'} fill={isFav ? '#FFC94A' : 'none'} aria-hidden="true" />
@@ -99,11 +107,12 @@ export function Gyms() {
           );
         })}
       </ul>
-      <p className="m-0 text-[11px] leading-relaxed text-muted">Gym list from touchstoneclimbing.com, benchmarkclimbing.com and bridgesrockgym.com (Nov 2026). Touchstone’s locations page lists cities only, so addresses and disciplines for those gyms are yours to fill in. “From gym site” means the gym’s own page states it.</p>
+      <p className="m-0 text-[11px] leading-relaxed text-muted">Gym list from each operator’s own website (Nov 2026): Touchstone, Benchmark, Bridges, Movement, Central Rock Gym, The Gravity Vault, Bouldering Project, Hangar 18, Climbing Collective, Rock Spot, Momentum, VITAL and High Point. Where a site doesn’t list an address or climbing types, they’re yours to fill in. “From gym site” means the gym’s own page states it.</p>
 
       <Sheet open={adding} onClose={() => setAdding(false)} title="Add a gym" footer={<Button variant="primary" className="w-full" onClick={saveGym}>Save gym</Button>}>
         <label className="flex flex-col gap-1.5 text-[13px] text-muted">Name<input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
         <label className="flex flex-col gap-1.5 text-[13px] text-muted">City<input className={inputCls} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required /></label>
+        <label className="flex flex-col gap-1.5 text-[13px] text-muted">State<StateSelect value={form.state || home} onChange={(st) => setForm({ ...form, state: st })} /></label>
         <label className="flex flex-col gap-1.5 text-[13px] text-muted">Address (optional)<input className={inputCls} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
         <label className="flex flex-col gap-1.5 text-[13px] text-muted">Website (optional)<input type="url" className={inputCls} value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://" /></label>
         <div className="flex flex-col gap-2">

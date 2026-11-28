@@ -136,6 +136,9 @@ export function toggleFavorite(d: AppData, gymId: ID): AppData {
   const f = d.settings.favorites;
   return { ...d, settings: { ...d.settings, favorites: f.includes(gymId) ? f.filter((x) => x !== gymId) : [...f, gymId] } };
 }
+export function setHomeState(d: AppData, state: string): AppData {
+  return { ...d, settings: { ...d.settings, homeState: state || undefined } };
+}
 export function setCurrentGym(d: AppData, gymId: ID): AppData {
   return { ...d, settings: { ...d.settings, currentGymId: gymId } };
 }

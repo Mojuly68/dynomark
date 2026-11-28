@@ -17,8 +17,8 @@ const NAV = [
   ...(CREW_ON ? [{ id: 'crew', to: '/crew', label: 'Crew', short: 'Crew', icon: Users }] : []),
   { id: 'profile', to: '/profile', label: 'Profile', short: 'Profile', icon: User },
 ];
-// With Crew on, Crew takes the Projects tab; Projects stays one tap away on Home.
-const MOBILE = ['home', 'progress', 'log', CREW_ON ? 'crew' : 'projects', 'training'];
+// Projects keeps its tab; Crew opens from the button at the top of Home (and the sidebar on wide screens).
+const MOBILE = ['home', 'progress', 'log', 'projects', 'training'];
 
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -66,6 +66,9 @@ export function Layout({ section, children }: { section: string; children: React
           {children}
         </main>
       </div>
+
+      {/* Solid strip behind the phone's status bar, so content scrolling up doesn't show through the clock and battery. */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 z-40 h-[var(--sa-top)] bg-bg lg:hidden" />
 
       <ActiveSessionPill section={section} />
 

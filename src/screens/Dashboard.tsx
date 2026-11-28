@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, Flame, Plus, Repeat2, Trophy, UserRound } from 'lucide-react';
+import { ChevronRight, Flame, Plus, Repeat2, Trophy, UserRound, Users } from 'lucide-react';
 import { useStore } from '../store/Store';
 import { useToast } from '../components/Toast';
 import { GymPicker } from '../components/GymPicker';
@@ -14,6 +14,7 @@ import type { ClimbType } from '../types';
 import { Logo } from '../components/Logo';
 import { Avatar } from '../components/Avatar';
 import { LockLabel, usePro, useUpsell } from '../lib/pro';
+import { CREW_ON } from '../crew/CrewProvider';
 
 export function Dashboard() {
   const { data, update, replace, gymById } = useStore();
@@ -82,11 +83,12 @@ export function Dashboard() {
   return (
     <div className="flex flex-col gap-5">
       <Logo height={22} className="text-ink lg:hidden" />
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex flex-col gap-0.5">
+      <header className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[13px] text-muted">{now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           <h1 className="m-0 font-display text-[28px] font-extrabold tracking-tight lg:text-[34px]">{greeting(now)}{data.user.name.trim() ? ', ' + data.user.name.trim() : ''}</h1>
         </div>
+        {CREW_ON && <a href={href('/crew')} aria-label="Crew" className="flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-[13px] font-semibold text-ink no-underline"><Users size={18} className="text-route" aria-hidden="true" />Crew</a>}
         <a href={href('/profile')} aria-label="Profile and settings" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full no-underline">{data.user.photo ? <Avatar user={data.user} size={44} /> : <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface-2 font-display text-[15px] font-extrabold text-ink">{data.user.name.trim() ? data.user.name.trim().slice(0, 2).toUpperCase() : <UserRound size={20} aria-hidden="true" />}</span>}</a>
       </header>
 

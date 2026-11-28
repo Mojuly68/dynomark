@@ -12,7 +12,8 @@ export type Outcome = RouteOutcome | BoulderOutcome;
 export type WallAngle = 'slab' | 'vertical' | 'overhang' | 'roof';
 export type RopeStyle = 'lead' | 'top-rope';
 export type Feel = 'soft' | 'on' | 'hard';
-export type Brand = 'Touchstone' | 'Benchmark' | 'Bridges' | 'Custom';
+/** Gym operator (chain) name, or 'Custom' for gyms the climber added. */
+export type Brand = string;
 
 export interface User {
   id: ID;
@@ -185,6 +186,8 @@ export interface Settings {
   units: 'lb' | 'kg';
   currentGymId: ID | null;
   favorites: ID[];
+  /** Two-letter US state the climber picked; the gym picker shows this state's gyms. */
+  homeState?: string;
   /** DYNOMARK Pro. Absent = free. `source: 'preview'` is the testing switch, not a purchase. */
   pro?: ProState;
 }
