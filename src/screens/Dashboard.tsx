@@ -6,7 +6,7 @@ import { GymPicker } from '../components/GymPicker';
 import { GradeChart } from '../components/charts';
 import { Bar, Button, Card, DemoBadge, Empty, H2, Segmented, cx } from '../components/ui';
 import { achievements, buckets, filterRange, pct, personalRecords, sessionInfo, streaks, totals, trendChange, type Range } from '../lib/stats';
-import { addDays, dayKey, fmtDay, fmtDayYear, fmtWeekday, greeting, startOfMonth, startOfWeek } from '../lib/dates';
+import { addDays, dayKey, fmtDay, fmtDayYear, fmtWeekday, startOfMonth, startOfWeek } from '../lib/dates';
 import { gradeLabel, outcomeLabel } from '../lib/grades';
 import { duplicateClimb, setCurrentGym, deleteClimb } from '../store/actions';
 import { href, navigate } from '../lib/router';
@@ -82,11 +82,12 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Logo height={22} className="text-ink lg:hidden" />
+      {/* No greeting: a long name would crowd the Crew and profile buttons. Logo and date on the left, buttons on the right. */}
       <header className="flex items-center gap-2">
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <h1 className="sr-only">Home</h1>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <Logo height={22} className="text-ink lg:hidden" />
           <span className="text-[13px] text-muted">{now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-          <h1 className="m-0 font-display text-[28px] font-extrabold tracking-tight lg:text-[34px]">{greeting(now)}{data.user.name.trim() ? ', ' + data.user.name.trim() : ''}</h1>
         </div>
         {CREW_ON && <a href={href('/crew')} aria-label="Crew" className="flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-[13px] font-semibold text-ink no-underline"><Users size={18} className="text-route" aria-hidden="true" />Crew</a>}
         <a href={href('/profile')} aria-label="Profile and settings" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full no-underline">{data.user.photo ? <Avatar user={data.user} size={44} /> : <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface-2 font-display text-[15px] font-extrabold text-ink">{data.user.name.trim() ? data.user.name.trim().slice(0, 2).toUpperCase() : <UserRound size={20} aria-hidden="true" />}</span>}</a>
